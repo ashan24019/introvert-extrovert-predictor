@@ -218,3 +218,8 @@ __marimo__/
 .streamlit/secrets.toml
 
 .vscode/
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
