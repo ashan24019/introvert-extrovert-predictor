@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Personality Predictor</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f0f0f;
+            color: #f0f0f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            margin-bottom: 0.3rem;
+        }
+
+        p.sub {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .field {
+            margin-bottom: 1.2rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 0.4rem;
+        }
+
+        input[type=number],
+        select {
+            width: 100%;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #f0f0f0;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type=number]:focus,
+        select:focus {
+            border-color: #555;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background: #f0f0f0;
+            color: #0f0f0f;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        .result {
+            display: none;
+            margin-top: 1.5rem;
+            padding: 1.2rem;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .result.introvert {
+            background: #0d1f3c;
+            border-color: #1a4a8a;
+        }
+
+        .result.extrovert {
+            background: #1f0d0d;
+            border-color: #8a1a1a;
+        }
+
+        .result .label {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .result .conf {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .error {
+            color: #e05555;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>Personality Predictor</h1>
+        <p class="sub">ML powered personality prediction based on behavioural patterns</p>
+
+        <div class="field">
+            <label>Time Spent Alone (hrs/day)</label>
+            <input type="number" id="Time_spent_Alone" min="0" max="11" step="0.5" value="5">
+        </div>
+        <div class="field">
+            <label>Stage Fear</label>
+            <select id="Stage_fear">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Social Event Attendance (0 to 10)</label>
+            <input type="number" id="Social_event_attendance" min="0" max="10" step="1" value="5">
+        </div>
+        <div class="field">
+            <label>Going Outside (days/week)</label>
+            <input type="number" id="Going_outside" min="0" max="7" step="1" value="3">
+        </div>
+        <div class="field">
+            <label>Drained After Socializing</label>
+            <select id="Drained_after_socializing">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Friend Circle Size</label>
+            <input type="number" id="Friends_circle_size" min="0" max="15" step="1" value="6">
+        </div>
+        <div class="field">
+            <label>Post Frequency (0 to 10)</label>
+            <input type="number" id="Post_frequency" min="0" max="10" step="1" value="4">
+        </div>
+
+        <button onclick="predict()">Predict</button>
+        <p class="error" id="error">Something went wrong. Is the server running?</p>
+
+        <div class="result" id="result">
+            <div class="label" id="res-label"></div>
+            <div class="conf" id="res-conf"></div>
+        </div>
+    </div>
+
+    <script>
+        async function predict() {
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('result').style.display = 'none';
+
+            const payload = {
+                Time_spent_Alone: +document.getElementById('Time_spent_Alone').value,
+                Stage_fear: document.getElementById('Stage_fear').value,
+                Social_event_attendance: +document.getElementById('Social_event_attendance').value,
+                Going_outside: +document.getElementById('Going_outside').value,
+                Drained_after_socializing: document.getElementById('Drained_after_socializing').value,
+                Friends_circle_size: +document.getElementById('Friends_circle_size').value,
+                Post_frequency: +document.getElementById('Post_frequency').value,
+            };
+
+            try {
+                const res = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                const box = document.getElementById('result');
+                box.className = 'result ' + data.personality.toLowerCase();
+                document.getElementById('res-label').textContent = data.personality;
+                document.getElementById('res-conf').textContent =
+                    `Confidence: ${(data.confidence * 100).toFixed(1)}%`;
+                box.style.display = 'block';
+            } catch {
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+
+</html>
